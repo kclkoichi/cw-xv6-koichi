@@ -89,3 +89,19 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// change the protection bits of the page range starting at addr and of len pages to be read only.
+int
+sys_mprotect(void)
+{
+  cprintf("called sys_mprotect\n");
+  return 12;
+}
+
+// sets the region back to both readable and writeable.
+int
+sys_munprotect(void)
+{
+  cprintf("called sys_munprotect\n");
+  return 12;
+}
