@@ -100,8 +100,6 @@ sys_uptime(void)
 int
 sys_mprotect(void)
 {
-  cprintf("called sys_mprotect\n");
-
   // Retrieving first argument (virtual address)
   int addrInt;
   argint(0, &addrInt);
@@ -162,7 +160,6 @@ sys_mprotect(void)
   // Make the hardware know about the changes of PTEs
   lcr3(V2P(pgdir));
 
-  cprintf("sys_mprotect succeeded\n");
   return 0; // success
 }
 
@@ -172,8 +169,6 @@ sys_mprotect(void)
 int
 sys_munprotect(void)
 {
-  cprintf("called sys_munprotect\n");
-
   // Retrieving first argument (virtual address)
   int addrInt;
   argint(0, &addrInt);
@@ -234,6 +229,5 @@ sys_munprotect(void)
   // Make the hardware know about the changes of PTEs
   lcr3(V2P(pgdir));
 
-  cprintf("sys_munprotect succeeded\n");
   return 0; // success
 }
