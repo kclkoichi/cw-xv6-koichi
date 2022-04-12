@@ -94,13 +94,13 @@ sys_uptime(void)
 int
 sys_mprotect(void)
 {
-  //retrieving first argument
+  // Retrieving first argument
   int addrInt;
   argint(0, &addrInt);
   // Changing it into a pointer
   void* address = (void*) addrInt; 
 
-  //retrieving second argument
+  // Retrieving second argument
   int len;
   argint(1,&len);
 
@@ -110,17 +110,17 @@ sys_mprotect(void)
   return 12;
 }
 
-// sets the region back to both readable and writeable.
+// Sets the region back to both readable and writeable.
 int
 sys_munprotect(void)
 {
-  //retrieving first argument
+  // Retrieving first argument
   int addrInt;
   argint(0, &addrInt);
   // Changing it into a pointer
   void* address = (void*) addrInt; 
 
-  //retrieving second argument
+  // Retrieving second argument
   int len;
   argint(1,&len);
 
