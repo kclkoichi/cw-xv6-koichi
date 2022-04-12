@@ -7,6 +7,9 @@
 #include "mmu.h"
 #include "proc.h"
 
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+
+
 int
 sys_fork(void)
 {
@@ -102,11 +105,17 @@ sys_mprotect(void)
   // Retrieving first argument (virtual address)
   int addrInt;
   argint(0, &addrInt);
+  // cprintf("addrInt: %d\n", addrInt);
+  if(addrInt % PGSIZE != 0) {
+    // address is not page aligned
+    return -1;
+  }
 
   // Retrieving second argument (length)
   int len;
   argint(1,&len);
   if(len <= 0) {
+    // len must be > 0
     return -1;
   }
 
@@ -118,6 +127,13 @@ sys_mprotect(void)
   pte_t *pgtab;
 
   uint limit = addrInt + len*PGSIZE;
+  uint mallocLimit = myproc()->vlimit;
+  cprintf("mallocLimit: %d\n", mallocLimit);
+  if(mallocLimit < limit) {
+    // addr will point a part that is out of the address space
+    return -1;
+  }
+  cprintf("limit: %d\n", limit);
   // Set the page range starting at addr and of len pages to be read only.
   for(int curAddr = addrInt; curAddr < limit; curAddr+=PGSIZE) {
     // Changing the address into a pointer
@@ -147,9 +163,14 @@ sys_mprotect(void)
     *pte &= ~(1 << PTE_W_INDEX);
 
     int newValue = *pte;
+    cprintf("old: %d\n", oldValue);
+    cprintf("new: %d\n", newValue);
 
-    if ((oldValue ^ newValue) & (1 << PTE_W_INDEX)) {
+    if ((*pte & (1 << PTE_W_INDEX)) != 0) {
       cprintf("current: %d PTE_W is 1 \n", vAddr);
+    }
+    if (!((*pte & (1 << PTE_W_INDEX)) != 0)) {
+      cprintf("current: %d PTE_W is 0 \n", vAddr);
     }
   }
 
@@ -184,10 +205,10 @@ sys_munprotect(void)
   // Pointer to Page Table
   pte_t *pgtab;
 
-  uint limit = addrInt + len;
-
+  uint limit = addrInt + len*PGSIZE;
+  cprintf("limit: %d\n", limit);
   // Set the page range starting at addr and of len pages to be read only.
-  for(int curAddr = addrInt; curAddr < limit; ++curAddr) {
+  for(int curAddr = addrInt; curAddr < limit; curAddr+=PGSIZE) {
     // Changing the address into a pointer
     const void* vAddr = (void*) curAddr; 
 
@@ -209,13 +230,19 @@ sys_munprotect(void)
     // Get pointer to Page Table Entry (from the Page Table)
     pte_t* pte = &pgtab[PTX(vAddr)];
 
-    // Set Writable flag of the Page Table Entry to 1
-    *pte = *pte | PTE_W;
+    // int oldValue = *pte;
 
-    if(*pte & PTE_W) {
+    // Set Writable flag of the Page Table Entry to 1
+    *pte |= 1 << PTE_W_INDEX;
+
+    // int newValue = *pte;
+    // cprintf("old: %d\n", oldValue);
+    // cprintf("new: %d\n", newValue);
+
+    if ((*pte & (1 << PTE_W_INDEX)) != 0) {
       cprintf("current: %d PTE_W is 1 \n", vAddr);
     }
-    if(*pte & ~PTE_W) {
+    if (!((*pte & (1 << PTE_W_INDEX)) != 0)) {
       cprintf("current: %d PTE_W is 0 \n", vAddr);
     }
   }
