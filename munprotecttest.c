@@ -5,7 +5,7 @@
  
 int 
 main(void) {
-  void * a = malloc(PGSIZE*3);
-  printf(1, "return val of mprotect call is %d\n\n", mprotect(a, 2));
+  void * b = malloc(PGSIZE*3);
+  printf(1, "return val of munprotect call is %d\n", munprotect(b, 2));
   exit();
 }

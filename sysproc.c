@@ -185,16 +185,20 @@ sys_mprotect(void)
 int
 sys_munprotect(void)
 {
-  cprintf("called sys_munprotect\n");
-
   // Retrieving first argument (virtual address)
   int addrInt;
   argint(0, &addrInt);
+  // cprintf("addrInt: %d\n", addrInt);
+  if(addrInt % PGSIZE != 0) {
+    // address is not page aligned
+    return -1;
+  }
 
   // Retrieving second argument (length)
   int len;
   argint(1,&len);
   if(len <= 0) {
+    // len must be > 0
     return -1;
   }
 
@@ -206,6 +210,12 @@ sys_munprotect(void)
   pte_t *pgtab;
 
   uint limit = addrInt + len*PGSIZE;
+  uint mallocLimit = myproc()->vlimit;
+  cprintf("mallocLimit: %d\n", mallocLimit);
+  if(mallocLimit < limit) {
+    // addr will point a part that is out of the address space
+    return -1;
+  }
   cprintf("limit: %d\n", limit);
   // Set the page range starting at addr and of len pages to be read only.
   for(int curAddr = addrInt; curAddr < limit; curAddr+=PGSIZE) {
@@ -230,14 +240,14 @@ sys_munprotect(void)
     // Get pointer to Page Table Entry (from the Page Table)
     pte_t* pte = &pgtab[PTX(vAddr)];
 
-    // int oldValue = *pte;
+    int oldValue = *pte;
 
-    // Set Writable flag of the Page Table Entry to 1
+    // Set Writable flag of the Page Table Entry to 0
     *pte |= 1 << PTE_W_INDEX;
 
-    // int newValue = *pte;
-    // cprintf("old: %d\n", oldValue);
-    // cprintf("new: %d\n", newValue);
+    int newValue = *pte;
+    cprintf("old: %d\n", oldValue);
+    cprintf("new: %d\n", newValue);
 
     if ((*pte & (1 << PTE_W_INDEX)) != 0) {
       cprintf("current: %d PTE_W is 1 \n", vAddr);
