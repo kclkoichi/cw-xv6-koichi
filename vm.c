@@ -317,6 +317,30 @@ clearpteu(pde_t *pgdir, char *uva)
   *pte &= ~PTE_U;
 }
 
+// Adds PTE_W on a page.
+void
+addptew(pde_t *pgdir, char *uva)
+{
+  pte_t *pte;
+
+  pte = walkpgdir(pgdir, uva, 0);
+  if(pte == 0)
+    panic("addptew");
+  *pte = *pte | PTE_W;
+}
+
+// Clear PTE_W on a page.
+void
+clearptew(pde_t *pgdir, char *uva)
+{
+  pte_t *pte;
+
+  pte = walkpgdir(pgdir, uva, 0);
+  if(pte == 0)
+    panic("clearptew");
+  *pte &= ~PTE_W;
+}
+
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*

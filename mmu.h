@@ -96,6 +96,8 @@ struct segdesc {
 #define PTE_U           0x004   // User
 #define PTE_PS          0x080   // Page Size
 
+#define PTE_W_INDEX     2 // Index of Writeable flag
+
 // Address in page table or page directory entry
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
 #define PTE_FLAGS(pte)  ((uint)(pte) &  0xFFF)
