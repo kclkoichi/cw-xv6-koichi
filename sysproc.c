@@ -177,9 +177,8 @@ sys_munprotect(void)
   // Retrieving first argument (virtual address)
   int addrInt;
   argint(0, &addrInt);
-  // cprintf("addrInt: %d\n", addrInt);
   if(addrInt % PGSIZE != 0) {
-    // address is not page aligned
+    cprintf("Error: address is not page aligned.\n");
     return -1;
   }
 
@@ -187,66 +186,54 @@ sys_munprotect(void)
   int len;
   argint(1,&len);
   if(len <= 0) {
-    // len must be > 0
+    cprintf("Error: length must be > 0.\n");
     return -1;
   }
 
-  // Pointer to Page Directory of my process
+  uint limit = addrInt + len*PGSIZE;
+  uint mallocLimit = myproc()->vlimit;
+  if(mallocLimit < limit) {
+    cprintf("Error: addr will point out of the address space.\n");
+    cprintf("(The chosen length is too big for the allocated memory for the process)\n");
+    return -1;
+  }
+
+  // Pointer to Page Directory of the process
   pde_t *pgdir = myproc()->pgdir;
   // Pointer to Page Directory Entry
   pde_t *pde; 
   // Pointer to Page Table
   pte_t *pgtab;
 
-  uint limit = addrInt + len*PGSIZE;
-  uint mallocLimit = myproc()->vlimit;
-  cprintf("mallocLimit: %d\n", mallocLimit);
-  if(mallocLimit < limit) {
-    // addr will point a part that is out of the address space
-    return -1;
-  }
-  cprintf("limit: %d\n", limit);
   // Set the page range starting at addr and of len pages to be read only.
   for(int curAddr = addrInt; curAddr < limit; curAddr+=PGSIZE) {
     // Changing the address into a pointer
     const void* vAddr = (void*) curAddr; 
 
     // PDX(vAddr) => get Page Directory Index from vAddr
-    // Get Page Directory Entry Pointer from Page Directory
+    // Get pointer to Page Directory Entry (from Page Directory)
     pde = &pgdir[PDX(vAddr)];
 
     // if Page Directory Entry is present (has present flag set)
     if(*pde & PTE_P){
-      // PTE_ADDR(*pde) => Address given by Page Directory Entry
-      // P2V(PTE_ADDR(*pde)) => Virtual vAddr of it
+      // P2V(PTE_ADDR(*pde)) => Virtual Address of address given by Page Directory Entry
       // Get pointer to Page Table 
       pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
     } else {
-      // No Page Table at this Page Directory Entry, so error
+      cprintf("Error: no page table at the page directory entry associated with the address.\n");
       return -1;
     }
     // PTX(vAddr) => get Page Table Index from vAddr
     // Get pointer to Page Table Entry (from the Page Table)
     pte_t* pte = &pgtab[PTX(vAddr)];
 
-    int oldValue = *pte;
-
-    // Set Writable flag of the Page Table Entry to 0
+    // Set Writable flag of the Page Table Entry to 1
     *pte |= 1 << PTE_W_INDEX;
-
-    int newValue = *pte;
-    cprintf("old: %d\n", oldValue);
-    cprintf("new: %d\n", newValue);
-
-    if ((*pte & (1 << PTE_W_INDEX)) != 0) {
-      cprintf("current: %d PTE_W is 1 \n", vAddr);
-    }
-    if (!((*pte & (1 << PTE_W_INDEX)) != 0)) {
-      cprintf("current: %d PTE_W is 0 \n", vAddr);
-    }
   }
 
+  // Make the hardware know about the changes of PTEs
   lcr3(V2P(pgdir));
 
+  cprintf("sys_munprotect succeeded\n");
   return 0; // success
 }
