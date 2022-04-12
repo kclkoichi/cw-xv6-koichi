@@ -90,15 +90,20 @@ sys_uptime(void)
   return xticks;
 }
 
-// change the protection bits of the page range starting at addr and of len pages to be read only.
+// Change the protection bits of the page range starting at addr and of len pages to be read only.
 int
 sys_mprotect(void)
 {
+  //retrieving first argument
   int addrInt;
-  argint(0, &addrInt); //retrieving first argument
-  void* address = (void*) addrInt;
+  argint(0, &addrInt);
+  // Changing it into a pointer
+  void* address = (void*) addrInt; 
+
+  //retrieving second argument
   int len;
-  argint(1,&len); //retrieving second argument
+  argint(1,&len);
+
   cprintf("Inside system call! address: %d\n", address);
   cprintf("Inside system call! len: %d\n", len);
   cprintf("called sys_mprotect\n");
@@ -109,12 +114,18 @@ sys_mprotect(void)
 int
 sys_munprotect(void)
 {
-  int addr;
-  argint(0, &addr); //retrieving first argument
+  //retrieving first argument
+  int addrInt;
+  argint(0, &addrInt);
+  // Changing it into a pointer
+  void* address = (void*) addrInt; 
+
+  //retrieving second argument
   int len;
-  argint(1,&len); //retrieving second argument
-  cprintf("Inside system call! *addr: %d\n", addr);
+  argint(1,&len);
+
+  cprintf("Inside system call! address: %d\n", address);
   cprintf("Inside system call! len: %d\n", len);
-  cprintf("called sys_mprotect\n");
+  cprintf("called sys_munprotect\n");
   return 12;
 }
