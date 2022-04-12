@@ -94,6 +94,13 @@ sys_uptime(void)
 int
 sys_mprotect(void)
 {
+  int addrInt;
+  argint(0, &addrInt); //retrieving first argument
+  void* address = (void*) addrInt;
+  int len;
+  argint(1,&len); //retrieving second argument
+  cprintf("Inside system call! address: %d\n", address);
+  cprintf("Inside system call! len: %d\n", len);
   cprintf("called sys_mprotect\n");
   return 12;
 }
@@ -102,6 +109,12 @@ sys_mprotect(void)
 int
 sys_munprotect(void)
 {
-  cprintf("called sys_munprotect\n");
+  int addr;
+  argint(0, &addr); //retrieving first argument
+  int len;
+  argint(1,&len); //retrieving second argument
+  cprintf("Inside system call! *addr: %d\n", addr);
+  cprintf("Inside system call! len: %d\n", len);
+  cprintf("called sys_mprotect\n");
   return 12;
 }
